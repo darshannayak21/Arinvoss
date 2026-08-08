@@ -446,7 +446,7 @@ The repository includes a `render.yaml` Blueprint file that auto-configures:
 | :--- | :--- | :--- |
 | **Live Production Deployment** | Localhost demo or static scripts | **Live on Render** with production URL ([arinvoss.onrender.com](https://arinvoss.onrender.com)) & live LinkedIn publication channel |
 | **Architecture Diagram Engine** | Text-only posts or hallucinated images | **100% diagram coverage** via Mermaid.js + server-side Kroki PNG compilation with deterministic fallbacks |
-| **Critic Guardrail Matrix** | Direct LLM output with formatting artifacts | **10-step post-generation validation** eliminating banned buzzwords, fixing whitespace, and stripping asterisks |
+| **Critic Guardrail Matrix** | Direct LLM output with formatting artifacts | **10-step post-generation validation** ensuring proper well formatted posts |
 | **Multi-Tier State Machine** | Ephemeral in-memory array | **Supabase PostgreSQL** atomic state machine (`DRAFT` $\rightarrow$ `QUEUED` $\rightarrow$ `PUBLISHED`) with RLS & indexes |
 | **Dual-Mode UI Dashboard** | Basic unstyled template | **Apple Industrial Minimalist + Nike Kinetic UI** with real-time Data Table and interactive Card Stream views |
 
