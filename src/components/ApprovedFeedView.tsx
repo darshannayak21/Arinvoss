@@ -121,41 +121,16 @@ export function ApprovedFeedView({
       </div>
 
       {/* Autonomous Quota & LinkedIn Status Banner */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "rgba(16, 185, 129, 0.08)",
-        border: "1px solid rgba(16, 185, 129, 0.25)",
-        borderRadius: "8px",
-        padding: "10px 16px",
-        marginBottom: "16px",
-        fontSize: "13px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{
-            display: "inline-block",
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            backgroundColor: "#10b981",
-            boxShadow: "0 0 8px #10b981",
-          }} />
-          <span style={{ color: "#34d399", fontWeight: 600 }}>Autonomous Cadence Active:</span>
-          <span style={{ color: "var(--text-secondary, #94a3b8)" }}>
+      <div className="cadence-quota-banner">
+        <div className="cadence-banner-left">
+          <span className="cadence-pulse-dot" />
+          <span className="cadence-title">Autonomous Cadence Active:</span>
+          <span className="cadence-subtitle">
             Curate @ 08:00 UTC | Dispatch @ 11:00 & 18:00 UTC (Max 2 posts / day)
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{
-            background: publishedTodayCount >= 2 ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.2)",
-            color: publishedTodayCount >= 2 ? "#f87171" : "#10b981",
-            padding: "2px 8px",
-            borderRadius: "12px",
-            fontWeight: 700,
-            fontSize: "12px",
-            border: `1px solid ${publishedTodayCount >= 2 ? "rgba(239, 68, 68, 0.4)" : "rgba(16, 185, 129, 0.4)"}`,
-          }}>
+        <div className="cadence-banner-right">
+          <span className={`cadence-count-badge ${publishedTodayCount >= 2 ? "limit-reached" : "active"}`}>
             {publishedTodayCount}/2 Dispatched Today
           </span>
         </div>
