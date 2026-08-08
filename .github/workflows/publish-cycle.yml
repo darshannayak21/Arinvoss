@@ -1,0 +1,19 @@
+name: agent-publish-cycle
+on:
+  schedule:
+    - cron: "0 */2 * * *"   # every 2 hours — ~24 cycles over 48h
+  workflow_dispatch: {}       # lets you trigger manually while testing
+
+jobs:
+  run-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger agent cycle
+        run: |
+          curl -X POST "${{ secrets.CYCLE_URL }}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail --max-time 120
+        env:
+          CYCLE_URL: ${{ secrets.CYCLE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

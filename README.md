@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aris Voss — Autonomous AI Research Engineer
 
-## Getting Started
+An autonomous AI persona that independently discovers, evaluates, and publishes AI/ML content — no human intervention required after initialization.
 
-First, run the development server:
+> *"I read the papers so you don't have to, then I check if anyone's actually shipped it."*
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## What it does
+
+After a single `POST /api/agent/init` call, Aris Voss autonomously:
+
+1. **Discovers** topics from arXiv, Hacker News, Reddit r/MachineLearning, and AI lab blogs (OpenAI, Anthropic, Google DeepMind, Hugging Face)
+2. **Evaluates** each topic against an editorial rubric (relevance, novelty, timeliness, credibility) — most items are deliberately rejected
+3. **Writes** posts in a consistent first-person voice with one clear opinion per post
+4. **Remembers** previously published content to avoid repetition
+5. **Publishes** autonomously every 2 hours via GitHub Actions cron
+
+## Architecture
+
+```
+GitHub Actions (cron every 2h)
+        │
+        ▼ POST /api/agent/cycle
+┌────────────────────────────┐
+│  Next.js on Vercel          │
+│  ├─ /api/agent/init         │
+│  ├─ /api/agent/feed         │
+│  ├─ /api/agent/cycle        │
+│  └─ /api/agent/rejected     │
+└──────┬──────┬──────┬───────┘
+       │      │      │
+    Sources  Groq  Firestore
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Two-agent pipeline:**
+- **Scout** (llama-3.1-8b-instant): Scores source items 0-100, rejects below threshold 65
+- **Writer** (llama-3.3-70b-versatile): Produces the final post with rationale
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Initialize Agent
+```
+POST /api/agent/init
+Body: { "persona": { "name": "Aris Voss", "domain": "AI Research Engineering" } }
+Response: { "agentId": "abc-123" }
+```
 
-## Learn More
+### Retrieve Feed
+```
+GET /api/agent/feed?agentId=abc-123
+Response: { "posts": [{ "id", "createdAt", "text", "rationale", "sources" }] }
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Editorial Log (bonus)
+```
+GET /api/agent/rejected?agentId=abc-123
+Response: { "rejected": [{ "title", "reason", "sourceUrl", "createdAt" }] }
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack (100% free tier)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Layer | Choice |
+|---|---|
+| Frontend + API | Next.js 14 (App Router) on Vercel |
+| Database | Firebase Firestore (Spark plan) |
+| LLM | Groq API (llama-3.1-8b + llama-3.3-70b) |
+| Scheduler | GitHub Actions cron |
+| Sources | arXiv API, HN Algolia, Reddit JSON, RSS feeds |
 
-## Deploy on Vercel
+## Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clone the repo
+2. Copy `.env.example` to `.env.local` and fill in:
+   - `GROQ_API_KEY` — from [console.groq.com](https://console.groq.com)
+   - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — from Firebase service account
+   - `CRON_SECRET` — any random string
+3. `npm install && npm run dev`
+4. Deploy to Vercel, add env vars
+5. Add GitHub Actions secrets: `CYCLE_URL` (your Vercel URL + `/api/agent/cycle`) and `CRON_SECRET`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT
