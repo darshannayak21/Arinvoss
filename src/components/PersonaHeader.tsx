@@ -30,7 +30,7 @@ export function PersonaHeader({
           />
         </div>
 
-        <h1 className="persona-headline">Aris Voss</h1>
+        <h1 className="persona-headline">Arin Voss</h1>
         <p className="persona-subheading">AI Research Engineer</p>
 
         <p className="persona-bio">

@@ -114,7 +114,7 @@ export function Sidebar({
           <div className="persona-avatar-image-wrap">
             <Image
               src="/PFP.png"
-              alt="Aris Voss AI Research Engineer"
+              alt="Arin Voss AI Research Engineer"
               width={38}
               height={38}
               className="persona-avatar-img"
@@ -128,7 +128,7 @@ export function Sidebar({
         </div>
         <div className="persona-meta">
           <div className="persona-name-row">
-            <span className="persona-name">Aris Voss</span>
+            <span className="persona-name">Arin Voss</span>
             <span className={`persona-mode-pill ${schedulerActive ? "live" : "manual"}`}>
               {schedulerActive ? "Live" : "Standby"}
             </span>

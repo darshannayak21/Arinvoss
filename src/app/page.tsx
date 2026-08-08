@@ -104,7 +104,7 @@ export default function DashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             persona: {
-              name: "Aris Voss",
+              name: "Arin Voss",
               domain: "AI Research Engineering",
             },
           }),
@@ -188,7 +188,7 @@ export default function DashboardPage() {
         {/* Global Footer */}
         <footer className="dashboard-footer">
           <div className="footer-left">
-            <span className="footer-brand">Aris Voss Research Engine</span>
+            <span className="footer-brand">Arin Voss Research Engine</span>
             <span className="footer-sep">•</span>
             <span className="footer-mode">VICODATHON 2026 Autonomous Track</span>
           </div>

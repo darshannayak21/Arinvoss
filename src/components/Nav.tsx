@@ -114,9 +114,9 @@ export function Nav({
   return (
     <nav className="global-nav">
       <div className="nav-container">
-        <Link href="/" className="nav-brand" title="Aris Voss — AI Research Engineer">
+        <Link href="/" className="nav-brand" title="Arin Voss — AI Research Engineer">
           <span className={`brand-dot ${schedulerActive ? "pulse-green" : "paused"}`} />
-          <span className="brand-name">Aris Voss</span>
+          <span className="brand-name">Arin Voss</span>
           <span className={`brand-badge ${schedulerActive ? "active-badge" : "paused-badge"}`}>
             {schedulerActive ? "Live Autonomy" : "Manual Mode"}
           </span>

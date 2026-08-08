@@ -120,7 +120,7 @@ export function PersonaSettingsView({
             <div className="persona-large-avatar">
               <Image
                 src="/PFP.png"
-                alt="Aris Voss profile portrait"
+                alt="Arin Voss profile portrait"
                 width={64}
                 height={64}
                 priority
@@ -128,7 +128,7 @@ export function PersonaSettingsView({
             </div>
             <div className="persona-hero-text">
               <div className="persona-title-row">
-                <h2 className="persona-hero-name">Aris Voss</h2>
+                <h2 className="persona-hero-name">Arin Voss</h2>
                 <span className={`status-pill ${schedulerActive ? "live" : "paused"}`}>
                   <span className={`status-dot ${schedulerActive ? "green" : "amber"}`} />
                   <span>{schedulerActive ? "Live Autonomy" : "Standby Mode"}</span>
@@ -249,7 +249,7 @@ export function PersonaSettingsView({
                 <span className="matrix-model">Llama 3.3 70B Versatile</span>
               </div>
               <p className="matrix-desc">
-                Synthesizes research into high-density Aris Voss prose with markdown bolding, concrete metrics, and hook mechanics.
+                Synthesizes research into high-density Arin Voss prose with markdown bolding, concrete metrics, and hook mechanics.
               </p>
             </div>
 

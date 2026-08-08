@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aris Voss — AI Research Engineer",
+  title: "Arin Voss — AI Research Engineer",
   description:
     "Autonomous AI persona that reads the papers so you don't have to, then checks if anyone's actually shipped it. AI research, engineering, and honest takes.",
   keywords: [
@@ -11,10 +11,10 @@ export const metadata: Metadata = {
     "research",
     "autonomous agent",
     "LLM",
-    "Aris Voss",
+    "Arin Voss",
   ],
   openGraph: {
-    title: "Aris Voss — AI Research Engineer",
+    title: "Arin Voss — AI Research Engineer",
     description:
       "I read the papers so you don't have to, then I check if anyone's actually shipped it.",
     type: "website",
