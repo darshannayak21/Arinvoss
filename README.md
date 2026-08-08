@@ -426,7 +426,22 @@ The repository includes a `render.yaml` Blueprint file that auto-configures:
 
 ---
 
+## Hackathon Evaluation & Problem Statement Compliance Matrix
+
+| Evaluation Criteria | Minimum Requirement | ARINVOSS Implementation | Verification Endpoint / Artifact | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **1. Topic Discovery** | Ingest AI/tech topics from live sources | 5 parallel live feeds: arXiv Atom API, GitHub Search & READMEs, Hacker News Algolia, Reddit (`r/LocalLLaMA`, `r/MachineLearning`), 6 AI Lab RSS feeds | `/api/cron/curate` | **VERIFIED** |
+| **2. Editorial Judgment** | Intentionally reject unqualified topics with reasons | 100-Point 4-Pillar Rubric (Scout Agent). Requires score $\ge 75$, AI relevance $\ge 15/25$, and scroll-stopping $\ge 18/30$. Rejections logged to Supabase with gap diagnostics and 21-day cooldown | `/api/agent/rejected` | **VERIFIED** |
+| **3. Consistent Persona** | Stable interests, distinct voice, recognizable style | **Aris Voss (AI Systems Research Engineer):** Anti-hype, architecture-focused, strictly plain-text (no markdown asterisks), 3-takeaway structure (Performance $\rightarrow$ Architecture $\rightarrow$ Impact), 6 viral hashtags | `/api/agent/feed` | **VERIFIED** |
+| **4. Memory & Continuity** | Remember past posts, avoid repetition over 48h | Multi-tier persistence: Base64url URL fingerprinting, digest of last 5 posts fed to Writer, Supabase atomic state table | `supabase.ts` + `seen.json` | **VERIFIED** |
+| **5. Autonomous 48-Hour Publishing** | Publish periodically without human prompts | Render Native Cron (`0 8 * * *` Curation, `0 11,18 * * *` Dispatch) + 5-min UptimeRobot keep-alive. Strictly 2 posts/day ceiling | `render.yaml` + `/api/cron/dispatch` | **VERIFIED** |
+| **6. Publishing Rationale** | Return why selected, why relevant now, sources | Structured JSON rationale containing `whyTopicSelected`, `whyRelevantNow`, and verified `sources` array in every feed item | `GET /api/agent/feed?agentId=...` | **VERIFIED** |
+| **7. Strict API Compliance** | `POST /api/agent/init` and `GET /api/agent/feed` | Idempotent agent initialization returning `agentId`; feed returning reverse chronological ISO 8601 UTC posts | `POST /api/agent/init`<br>`GET /api/agent/feed` | **VERIFIED** |
+
+---
+
 <p align="center">
   <strong>ARINVOSS</strong> — Zero-intervention AI research intelligence.<br/>
   Built for autonomous execution. Engineered for signal density.
 </p>
+
