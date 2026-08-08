@@ -8,6 +8,8 @@ import {
   PersonaSettingsIcon,
   PlayIcon,
   CheckIcon,
+  LinkedInIcon,
+  ExternalLinkIcon,
 } from "./Icons";
 
 export type NavTab = "feed" | "editorial" | "persona";
@@ -136,6 +138,22 @@ export function Sidebar({
           <span className="persona-role">AI Systems Engineer</span>
         </div>
       </div>
+
+      {/* LinkedIn Publication Channel Link */}
+      <a
+        href="https://www.linkedin.com/company/aris-voss/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="sidebar-channel-link"
+        id="sidebar-linkedin-link"
+        title="View Live LinkedIn Publication Channel"
+      >
+        <span className="channel-icon-pill">
+          <LinkedInIcon size={14} className="channel-linkedin-svg" />
+        </span>
+        <span className="channel-link-text">LinkedIn Channel</span>
+        <ExternalLinkIcon size={12} className="channel-ext-svg" />
+      </a>
 
       {/* Main Navigation Items (Icon-Driven) */}
       <nav className="sidebar-nav" aria-label="Dashboard Navigation">
