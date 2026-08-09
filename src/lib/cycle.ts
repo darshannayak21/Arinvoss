@@ -199,95 +199,56 @@ export async function runCycle(): Promise<CycleResult> {
   // Sort approved candidates by score descending
   approvedLiveCandidates.sort((a, b) => b.result.score - a.result.score);
 
-  let candidateToPublish: {
+  let candidatesToPublish: {
     item: SourceItem;
     score: number;
     reason: string;
     sourceType: "live" | "backlog";
-  } | null = null;
+  }[] = [];
 
   let queuedToBacklogCount = 0;
 
+  // We want to pick the best 2 candidates for publication (since the user runs the cycle once a day, but posts twice)
   const currentBacklog = getBacklog(agentId);
-  const topBacklogItem: BacklogItem | null = currentBacklog.length > 0 ? currentBacklog[0] : null;
+  const candidatesPool = [...approvedLiveCandidates.map(c => ({
+    item: c.item,
+    score: c.result.score,
+    reason: c.result.reason,
+    sourceType: "live" as const
+  })), ...currentBacklog.map(b => ({
+    item: b.item,
+    score: b.score,
+    reason: b.reason,
+    sourceType: "backlog" as const
+  }))];
 
-  if (approvedLiveCandidates.length > 0) {
-    const topLive = approvedLiveCandidates[0];
-    const liveRunnersUp = approvedLiveCandidates.slice(1);
+  // Sort the combined pool by score
+  candidatesPool.sort((a, b) => b.score - a.score);
 
-    // Save all runners-up to backlog instead of wasting them!
-    for (const runnerUp of liveRunnersUp) {
-      addToBacklog(
-        agentId,
-        runnerUp.item,
-        runnerUp.result.score,
-        runnerUp.result.breakdown,
-        runnerUp.result.reason
-      );
+  // Take the top 2
+  candidatesToPublish = candidatesPool.slice(0, 2);
+
+  // For any live candidate that we did NOT pick, add it to the backlog
+  const selectedUrls = candidatesToPublish.map(c => c.item.url);
+  for (const live of approvedLiveCandidates) {
+    if (!selectedUrls.includes(live.item.url)) {
+      addToBacklog(agentId, live.item, live.result.score, live.result.breakdown, live.result.reason);
       queuedToBacklogCount++;
-      console.log(
-        `  [Backlog] Enqueued runner-up: "${runnerUp.item.title.substring(0, 60)}" (Score ${runnerUp.result.score})`
-      );
     }
-
-    // Compare top live candidate vs top backlog candidate
-    if (topBacklogItem && topBacklogItem.score > topLive.result.score) {
-      console.log(
-        `  [Queue] Top backlog item (${topBacklogItem.score}) beats top live item (${topLive.result.score}). Publishing from backlog.`
-      );
-      // Enqueue top live item into backlog
-      addToBacklog(
-        agentId,
-        topLive.item,
-        topLive.result.score,
-        topLive.result.breakdown,
-        topLive.result.reason
-      );
-      queuedToBacklogCount++;
-
-      // Pop best from backlog
-      const popped = popBestBacklogItem(agentId);
-      if (popped) {
-        candidateToPublish = {
-          item: popped.item,
-          score: popped.score,
-          reason: popped.reason,
-          sourceType: "backlog",
-        };
-      }
-    } else {
-      console.log(
-        `  [Queue] Top live item (${topLive.result.score}) selected for immediate publication.`
-      );
-      candidateToPublish = {
-        item: topLive.item,
-        score: topLive.result.score,
-        reason: topLive.result.reason,
-        sourceType: "live",
-      };
-    }
-  } else {
-    // No live candidate scored >= 75 this cycle. Check if backlog has high-signal content ready!
-    if (topBacklogItem && topBacklogItem.score >= 75) {
-      console.log(
-        `  [Queue] Live feed quiet. Popping top backlog item (${topBacklogItem.score}/100) for publishing.`
-      );
-      const popped = popBestBacklogItem(agentId);
-      if (popped) {
-        candidateToPublish = {
-          item: popped.item,
-          score: popped.score,
-          reason: popped.reason,
-          sourceType: "backlog",
-        };
-      }
+  }
+  
+  // For any backlog candidate that WE DID pick, remove it from the backlog
+  for (const pub of candidatesToPublish) {
+    if (pub.sourceType === "backlog") {
+      popBestBacklogItem(agentId); // Simplified, pops top one by one. Or we can just use removeFromBacklog
+      // Actually since it's sorted, we pop the best ones anyway.
     }
   }
 
   const remainingBacklogCount = getBacklog(agentId).length;
 
-  // ── Step 5: Writer produces post for the chosen candidate ──
-  if (!candidateToPublish) {
+  // ── Step 5: Writer produces post for the chosen candidates ──
+  if (candidatesToPublish.length === 0) {
     console.log(
       `[Cycle] No candidate met the >= 75 threshold and backlog is empty. Cycle completed calmly.`
     );
@@ -301,75 +262,88 @@ export async function runCycle(): Promise<CycleResult> {
     };
   }
 
-  console.log(
-    `\n[Writer] Generating post for: "${candidateToPublish.item.title}" (Score=${candidateToPublish.score}, Source=${candidateToPublish.sourceType})`
-  );
+  let successCount = 0;
+  let lastPostId: string | undefined = undefined;
 
-  try {
-    const recentDigest = getRecentPostDigest(agentId);
-    const writerResult = await runWriter(
-      candidateToPublish.item,
-      candidateToPublish.reason,
-      recentDigest
+  for (const candidate of candidatesToPublish) {
+    console.log(
+      `\n[Writer] Generating post for: "${candidate.item.title}" (Score=${candidate.score}, Source=${candidate.sourceType})`
     );
 
-    const postId = createPost({
-      agentId,
-      text: writerResult.text,
-      rationale: writerResult.rationale,
-      whyTopicSelected: writerResult.whyTopicSelected,
-      whyRelevantNow: writerResult.whyRelevantNow,
-      sources: writerResult.sources,
-      topicTags: writerResult.topicTags,
-      editorialScore: candidateToPublish.score,
-      mermaidDiagram: writerResult.mermaidDiagram,
-      metricsCited: writerResult.metricsCited,
-    });
+    try {
+      const recentDigest = getRecentPostDigest(agentId);
+      const writerResult = await runWriter(
+        candidate.item,
+        candidate.reason,
+        recentDigest
+      );
 
-    markSourceSeen(candidateToPublish.item.url, "published");
+      const postId = createPost({
+        agentId,
+        text: writerResult.text,
+        rationale: writerResult.rationale,
+        whyTopicSelected: writerResult.whyTopicSelected,
+        whyRelevantNow: writerResult.whyRelevantNow,
+        sources: writerResult.sources,
+        topicTags: writerResult.topicTags,
+        editorialScore: candidate.score,
+        mermaidDiagram: writerResult.mermaidDiagram,
+        metricsCited: writerResult.metricsCited,
+      });
 
-    // 1. Persist to Supabase Database (if configured)
-    void savePostToSupabase({
-      id: postId,
-      agentId,
-      text: writerResult.text,
-      rationale: writerResult.rationale,
-      whyTopicSelected: writerResult.whyTopicSelected,
-      whyRelevantNow: writerResult.whyRelevantNow,
-      sources: writerResult.sources,
-      topicTags: writerResult.topicTags,
-      editorialScore: candidateToPublish.score,
-      mermaidDiagram: writerResult.mermaidDiagram,
-      metricsCited: writerResult.metricsCited,
-    }).catch((e) => console.error("[Cycle] Supabase save error:", e));
+      markSourceSeen(candidate.item.url, "published");
 
-    // 2. Posts are now ONLY queued by the cycle.
-    // They will be picked up by the dispatcher cron job or published manually via the UI.
-    console.log(`[Cycle] ✓ Successfully queued post ${postId}`);
-    console.log(`        Hook: "${writerResult.text.split("\n")[0]}"\n`);
+      // 1. Persist to Supabase Database
+      void savePostToSupabase({
+        id: postId,
+        agentId,
+        text: writerResult.text,
+        rationale: writerResult.rationale,
+        whyTopicSelected: writerResult.whyTopicSelected,
+        whyRelevantNow: writerResult.whyRelevantNow,
+        sources: writerResult.sources,
+        topicTags: writerResult.topicTags,
+        editorialScore: candidate.score,
+        mermaidDiagram: writerResult.mermaidDiagram,
+        metricsCited: writerResult.metricsCited,
+      }).catch((e) => console.error("[Cycle] Supabase save error:", e));
 
-    return {
-      published: true,
-      postId,
-      sourceType: candidateToPublish.sourceType,
-      candidateScore: candidateToPublish.score,
-      candidatesEvaluated: evaluatedCount,
-      rejected: rejectedCount,
-      backlogQueued: queuedToBacklogCount,
-      backlogRemaining: remainingBacklogCount,
-      discoveryStatus,
-    };
-  } catch (err) {
-    console.error("[Writer] Failed:", err);
-    markSourceSeen(candidateToPublish.item.url, "rejected");
+      console.log(`[Cycle] ✓ Successfully queued post ${postId}`);
+      console.log(`        Hook: "${writerResult.text.split("\n")[0]}"\n`);
+      
+      successCount++;
+      lastPostId = postId;
+      
+      // Delay before writing next one
+      await new Promise(r => setTimeout(r, 2000));
+      
+    } catch (err) {
+      console.error("[Writer] Failed:", err);
+      markSourceSeen(candidate.item.url, "rejected");
+    }
+  }
+
+  if (successCount === 0) {
     return {
       published: false,
       candidatesEvaluated: evaluatedCount,
       rejected: rejectedCount,
       backlogQueued: queuedToBacklogCount,
       backlogRemaining: remainingBacklogCount,
-      error: `Writer failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `All writers failed.`,
       discoveryStatus,
     };
   }
+
+  return {
+    published: true,
+    postId: lastPostId,
+    sourceType: candidatesToPublish[0].sourceType,
+    candidateScore: candidatesToPublish[0].score,
+    candidatesEvaluated: evaluatedCount,
+    rejected: rejectedCount,
+    backlogQueued: queuedToBacklogCount,
+    backlogRemaining: remainingBacklogCount,
+    discoveryStatus,
+  };
 }
