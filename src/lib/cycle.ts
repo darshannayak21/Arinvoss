@@ -135,6 +135,7 @@ export async function runCycle(): Promise<CycleResult> {
   let rejectedCount = 0;
   let evaluatedCount = 0;
   const approvedLiveCandidates: { item: SourceItem; result: ScoutResult }[] = [];
+  const allEvaluatedCandidates: { item: SourceItem; result: ScoutResult }[] = [];
 
   // Evaluate up to 5 new items per cycle to conserve rate limits
   const toEvaluate = newItems.slice(0, 5);
@@ -152,14 +153,10 @@ export async function runCycle(): Promise<CycleResult> {
         `          [Breakdown: AI=${result.breakdown.ai_relevance}/25, Novelty=${result.breakdown.technical_novelty}/25, Scroll=${result.breakdown.scroll_stopping}/30, Cred=${result.breakdown.source_credibility}/20]`
       );
 
-      if (result.worth_publishing && result.score >= 75) {
-        approvedLiveCandidates.push({ item, result });
-      } else {
-        // Log rejected topic with specific reason
-        markSourceSeen(item.url, "rejected");
-        createRejectedTopic(agentId, item.title, result.reason, item.url);
-        rejectedCount++;
-      }
+      allEvaluatedCandidates.push({ item, result });
+
+      // We will sort and filter them after all are evaluated
+      // to ensure we always have at least one fallback.
 
       // Safe delay between Scout LLM calls
       await new Promise((r) => setTimeout(r, 1200));
@@ -169,7 +166,37 @@ export async function runCycle(): Promise<CycleResult> {
   }
 
   // ── Step 4: Content Backlog & Queue Arbitration ──
-  // Sort live candidates by score descending
+  
+  // Sort ALL evaluated candidates by score descending
+  allEvaluatedCandidates.sort((a, b) => b.result.score - a.result.score);
+  
+  // If nothing scored >= 75, we guarantee a post by taking the best one anyway!
+  if (allEvaluatedCandidates.length > 0 && approvedLiveCandidates.length === 0) {
+    const bestFallback = allEvaluatedCandidates[0];
+    console.log(`  [Fallback] No items reached 75. Guaranteeing post by promoting highest scored item: ${bestFallback.result.score}/100`);
+    approvedLiveCandidates.push(bestFallback);
+    
+    // Mark the rest as rejected
+    for (let i = 1; i < allEvaluatedCandidates.length; i++) {
+      const rejected = allEvaluatedCandidates[i];
+      markSourceSeen(rejected.item.url, "rejected");
+      createRejectedTopic(agentId, rejected.item.title, rejected.result.reason, rejected.item.url);
+      rejectedCount++;
+    }
+  } else {
+    // We have items >= 75, separate them properly
+    for (const evaluated of allEvaluatedCandidates) {
+      if (evaluated.result.worth_publishing && evaluated.result.score >= 75) {
+        approvedLiveCandidates.push(evaluated);
+      } else {
+        markSourceSeen(evaluated.item.url, "rejected");
+        createRejectedTopic(agentId, evaluated.item.title, evaluated.result.reason, evaluated.item.url);
+        rejectedCount++;
+      }
+    }
+  }
+
+  // Sort approved candidates by score descending
   approvedLiveCandidates.sort((a, b) => b.result.score - a.result.score);
 
   let candidateToPublish: {
