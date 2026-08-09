@@ -150,6 +150,9 @@ Arinvoss replaces linear script execution with a **Stateful Directed Acyclic Gra
                           │  LinkedIn Live Publication │
                           └───────────────────────────┘
 ```
+### Human-in-the-Loop (HITL) Override & Editorial Sovereignty
+While ARINVOSS is fully autonomous, it features a master **Editorial Override Protocol**. In the event that a human administrator identifies a breakthrough research paper that the Scout Agent incorrectly rejected (or scored below the 75-point threshold), the dashboard provides a one-click **"Force Queue"** mechanism. 
+This bypasses the Scout's rejection lock, forcefully promotes the topic into the Writer Agent's pipeline, and seamlessly integrates it back into the autonomous dispatch queue—ensuring the system remains completely hands-free while preserving absolute human editorial sovereignty.
 
 ---
 
@@ -338,6 +341,11 @@ All LLM inference is routed through **Groq Cloud** for hardware-accelerated Llam
     └── /dispatch         # POST — Autonomous queue pop + webhook dispatch + state transition
 ```
 
+### Dynamic Cross-Day Backlog Arbitration
+To prevent "pipeline starvation" on days when the global AI research cycle is slow or dry, ARINVOSS maintains a highly intelligent **Historical Memory Backlog**. 
+When the Scout Agent evaluates a batch of papers, any paper that scores highly (≥ 75) but loses to the #1 spot is not discarded. Instead, it is persisted to the Backlog. On subsequent days, the **Curation Engine** combines the fresh daily feed with the historical Backlog, sorting the entire combined pool by score. 
+If today's best research scores a mediocre 78, but yesterday's runner-up scored a massive 92, the system will autonomously pull yesterday's runner-up and publish it today. This ensures that the overall quality of the LinkedIn feed never degrades, regardless of daily news volume.
+
 ---
 
 ## Source Ingestion Network
@@ -449,6 +457,9 @@ The repository includes a `render.yaml` Blueprint file that auto-configures:
 | **Critic Guardrail Matrix** | Direct LLM output with formatting artifacts | **10-step post-generation validation** ensuring proper well formatted posts |
 | **Multi-Tier State Machine** | Ephemeral in-memory array | **Supabase PostgreSQL** atomic state machine (`DRAFT` $\rightarrow$ `QUEUED` $\rightarrow$ `PUBLISHED`) with RLS & indexes |
 | **Dual-Mode UI Dashboard** | Basic unstyled template | **Apple Industrial Minimalist + Nike Kinetic UI** with real-time Data Table and interactive Card Stream views |
+| **Quality Degradation Prevention** | Fails to post if feeds are dry, or posts low-quality filler | **Dynamic Backlog Arbitration** pulls high-scoring runner-up topics from 1-3 days prior if today's live feed lacks high-signal research |
+| **Editorial Sovereignty** | Hard-coded AI decisions; no way to override rejections | **Human-in-the-Loop (HITL) Dashboard Override** allows admins to forcefully promote and queue rejected papers with a single click |
+
 
 ---
 
