@@ -276,11 +276,57 @@ export function EditorialLogView({
 
                   {/* Source */}
                   <td className="table-col-source">
-                    {item.sourceUrl ? (
-                      <SourcePill url={item.sourceUrl} className="compact" />
-                    ) : (
-                      <span className="source-none">External Ingestion</span>
-                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {item.sourceUrl ? (
+                        <SourcePill url={item.sourceUrl} className="compact" />
+                      ) : (
+                        <span className="source-none">External Ingestion</span>
+                      )}
+                      
+                      <button
+                        style={{
+                          backgroundColor: "#f59e0b",
+                          color: "white",
+                          border: "none",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          width: "fit-content"
+                        }}
+                        onClick={async (e) => {
+                          const btn = e.currentTarget;
+                          btn.innerText = "Researching...";
+                          btn.disabled = true;
+                          try {
+                            const res = await fetch("/api/agent/force-queue", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ 
+                                title: item.title,
+                                url: item.sourceUrl,
+                                reason: item.reason
+                              })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              btn.innerText = "✓ Queued (Check Feed)";
+                              btn.style.backgroundColor = "#10b981";
+                            } else {
+                              btn.innerText = "Failed";
+                              btn.style.backgroundColor = "#ef4444";
+                            }
+                          } catch (err) {
+                            btn.innerText = "Error";
+                          }
+                        }}
+                        title="Force the AI to research this and put it in the Approved Feed"
+                        type="button"
+                      >
+                        Force Queue
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

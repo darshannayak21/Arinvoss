@@ -5,7 +5,7 @@ import { ScoreBreakdown } from "../store";
 const SCOUT_SYSTEM_PROMPT = `You are an elite AI Research Scout. Evaluate topics from 0-100 on 4 pillars:
 1. ai_relevance (0-25): Strictly AI/LLMs/neural networks/ML systems (0 if general web/SaaS/crypto).
 2. technical_novelty (0-25): Real architectural breakthrough, CUDA kernel, or open weights (not PR fluff).
-3. scroll_stopping (0-30): Explainability and practitioner interest. A technically dense proof with no clear engineering lesson should score below 15. Score highly only when a curious technical reader can learn something concrete in a short LinkedIn post.
+3. scroll_stopping (0-30): IMPACT AND BROAD APPLICABILITY. If a project makes local LLMs 25% faster, reduces VRAM by 50%, or solves a massive general problem, give it a 30/30. Explainability and practitioner interest are key.
 4. source_credibility (0-20): arXiv, Hugging Face, top lab blog, or starred GitHub.
 
 Output JSON ONLY:
