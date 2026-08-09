@@ -47,10 +47,18 @@ export async function dispatchToMakeWebhook(payload: WebhookPublishPayload): Pro
   try {
     const formattedText = cleanPlainText(payload.text);
 
-    // If a mermaid diagram is provided and no custom image URL is given, convert diagram to PNG
-    const finalImageUrl =
-      payload.imageUrl ||
-      (payload.mermaidDiagram ? mermaidToPngUrl(payload.mermaidDiagram) : "");
+    // LinkedIn's image proxy crashes (500 Error) on excessively long base64 URLs.
+    // If the Kroki diagram URL is too long, we use a beautiful, safe AI static banner.
+    let finalImageUrl = payload.imageUrl || "";
+    if (!finalImageUrl && payload.mermaidDiagram) {
+      const krokiUrl = mermaidToPngUrl(payload.mermaidDiagram);
+      if (krokiUrl.length > 800) {
+        // Safe static fallback to prevent LinkedIn DataError 500
+        finalImageUrl = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1200&auto=format&fit=crop";
+      } else {
+        finalImageUrl = krokiUrl;
+      }
+    }
 
     const supabaseId = payload.supabaseId || payload.id || "";
 
