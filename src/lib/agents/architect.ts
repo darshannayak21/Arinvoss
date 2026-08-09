@@ -6,7 +6,7 @@ Your job is to convert technical AI research papers, model releases, and codebas
 
 RULES FOR MERMAID DIAGRAMS (MANDATORY):
 1. Format MUST start with "graph TD" (top-to-bottom) or "graph LR" (left-to-right).
-2. Keep the diagram concise and highly focused: use a maximum of 4 to 7 nodes. Never exceed 8 nodes, as complex diagrams create URLs that are too long for LinkedIn's API.
+2. Use the diagram length that the research warrants: 6-8 nodes for a simple method, 9-12 for a multi-stage system, and up to 15 for complex agentic, training, or evaluation workflows. Never pad a diagram with generic boxes.
 3. Show the actual research mechanism: inputs, representations, routing or scheduling, key algorithmic stages, training or inference execution, validation, and measured outcomes when evidence supports them.
 4. CRITICAL SYNTAX RULE: ALWAYS enclose node text in double quotes inside brackets:
    Example:
@@ -138,7 +138,7 @@ ${item.readmeSnippet ? `README Extract: ${item.readmeSnippet.slice(0, 2200)}\n` 
 Editorial Post Content:
 ${postText.slice(0, 1200)}
 
-Generate a concise, research-grade Mermaid.js architecture flowchart. Use a strict maximum of 4 to 7 nodes. Do not exceed 8 nodes under any circumstance. Keep node labels extremely short. Output ONLY the raw Mermaid diagram string.`;
+Generate a research-grade Mermaid.js architecture flowchart. Use 6-15 evidence-based nodes according to complexity, not a generic 3-5 block diagram. Output ONLY the raw Mermaid diagram string.`;
 
   try {
     const raw = await callArchitect(ARCHITECT_SYSTEM_PROMPT, userPrompt);
