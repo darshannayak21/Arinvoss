@@ -30,13 +30,13 @@ export async function runDispatchCycle(): Promise<DispatchResult> {
   console.log("[Dispatch Engine] Starting Autonomous LinkedIn Dispatch");
   console.log("=======================================================");
 
-  // 1. Enforce max 10 posts per day limit (temporarily increased for hackathon testing)
+  // 1. Enforce max 2 posts per day limit
   const publishedToday = await getTodayPublishedCount();
-  if (publishedToday >= 10) {
-    console.log(`[Dispatch Engine] Daily publication limit reached (${publishedToday}/10 published today). Halting dispatch.`);
+  if (publishedToday >= 2) {
+    console.log(`[Dispatch Engine] Daily publication limit reached (${publishedToday}/2 published today). Halting dispatch.`);
     return {
       published: false,
-      reason: `Daily limit of 10 posts reached (${publishedToday} published today).`,
+      reason: `Daily limit of 2 posts reached (${publishedToday} published today).`,
       publishedTodayCount: publishedToday,
     };
   }
