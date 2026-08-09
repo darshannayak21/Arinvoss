@@ -28,10 +28,17 @@ export async function GET(
     }
     
     const krokiUrl = mermaidToPngUrl(data.mermaid_diagram);
-    const res = await fetch(krokiUrl);
+    const res = await fetch(krokiUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "image/png"
+      }
+    });
     
     if (!res.ok) {
-      return new NextResponse("Error fetching diagram from Kroki", { status: 500 });
+      const errText = await res.text();
+      console.error(`[Diagram API] Kroki Error ${res.status}: ${errText}`);
+      return new NextResponse(`Error fetching diagram from Kroki: ${res.status} ${res.statusText}`, { status: 500 });
     }
     
     const arrayBuffer = await res.arrayBuffer();
