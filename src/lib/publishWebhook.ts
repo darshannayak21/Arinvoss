@@ -50,13 +50,17 @@ export async function dispatchToMakeWebhook(payload: WebhookPublishPayload): Pro
     const supabaseId = payload.supabaseId || payload.id || "";
 
     // LinkedIn's image proxy crashes (500 Error) on excessively long base64 URLs.
-    // We now use our own internal API route to proxy the image cleanly!
+    // We enforce short diagrams (4-7 nodes) during curation to prevent this.
+    // If the diagram URL is still too long, we use a beautiful, safe AI static banner.
     let finalImageUrl = "";
-    if (payload.mermaidDiagram && supabaseId) {
-      // Forcefully provide a clean, short URL (overrides any giant Kroki URL saved in old db rows)
-      finalImageUrl = `https://arinvoss.onrender.com/api/diagram/${supabaseId}.png`;
-    } else if (payload.mermaidDiagram) {
-      finalImageUrl = mermaidToPngUrl(payload.mermaidDiagram);
+    if (payload.mermaidDiagram) {
+      const krokiUrl = mermaidToPngUrl(payload.mermaidDiagram);
+      if (krokiUrl.length > 800) {
+        // Safe static fallback to prevent LinkedIn DataError 500
+        finalImageUrl = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1200&auto=format&fit=crop";
+      } else {
+        finalImageUrl = krokiUrl;
+      }
     } else {
       finalImageUrl = payload.imageUrl || "";
     }
