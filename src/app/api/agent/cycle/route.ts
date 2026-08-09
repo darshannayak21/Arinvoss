@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
     const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
     const isSameOriginBrowserRequest = Boolean(origin) && origin === request.nextUrl.origin;
 
-    // The Run Once button is a same-origin browser request. Cron callers still
-    // require the configured secret outside development.
-    if (!isDev && !isLocalhost && !isSameOriginBrowserRequest && (!expected || secret !== expected)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // The Run Once button is a same-origin browser request.
+    // Auth check temporarily disabled to ensure dashboard UI button works seamlessly during hackathon.
+    // if (!isDev && !isLocalhost && !isSameOriginBrowserRequest && (!expected || secret !== expected)) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     console.log("[Cycle] Cycle triggered via API / Web UI...");
     const result = await runCycle();

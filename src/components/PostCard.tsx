@@ -296,6 +296,52 @@ export function PostCard({ post, index }: PostCardProps) {
         >
           {copied ? "Link copied" : "Copy link"}
         </button>
+
+        {(!post.publishedToLinkedin && post.status !== "PUBLISHED") && (
+          <button
+            style={{
+              backgroundColor: "#0077B5",
+              color: "white",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: "4px",
+              fontWeight: 600,
+              fontSize: "13px",
+              cursor: "pointer",
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}
+            onClick={async (e) => {
+              const btn = e.currentTarget;
+              btn.innerText = "Publishing...";
+              btn.disabled = true;
+              try {
+                const res = await fetch("/api/agent/publish-post", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ postId: post.id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                  btn.innerText = "✓ Published";
+                  btn.style.backgroundColor = "#10b981";
+                } else {
+                  btn.innerText = "Failed";
+                  btn.style.backgroundColor = "#ef4444";
+                  alert(data.error);
+                }
+              } catch (err) {
+                btn.innerText = "Error";
+              }
+            }}
+            title="Publish instantly to LinkedIn"
+            type="button"
+          >
+            Publish to LinkedIn 🚀
+          </button>
+        )}
       </div>
 
       {/* Expandable Rationale Accordion */}
