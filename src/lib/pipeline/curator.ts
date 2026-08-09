@@ -82,7 +82,7 @@ export async function runCurationCycle(): Promise<CurationResult> {
   // 3. Evaluate candidates with Scout
   let evaluatedCount = 0;
   let rejectedCount = 0;
-  const approvedCandidates: { item: SourceItem; result: ScoutResult }[] = [];
+  const allCandidates: { item: SourceItem; result: ScoutResult }[] = [];
 
   // Evaluate up to 8 candidates to find the best 2
   const toEvaluate = newItems.slice(0, 8);
@@ -91,14 +91,11 @@ export async function runCurationCycle(): Promise<CurationResult> {
     try {
       evaluatedCount++;
       const result = await runScout(item);
+      allCandidates.push({ item, result });
 
       if (result.worth_publishing && result.score >= 75) {
-        approvedCandidates.push({ item, result });
         console.log(`  [Scout] ✓ APPROVED (${result.score}/100) "${item.title.substring(0, 55)}..."`);
       } else {
-        markSourceSeen(item.url, "rejected");
-        createRejectedTopic(agentId, item.title, result.reason, item.url);
-        rejectedCount++;
         console.log(`  [Scout] ✗ REJECTED (${result.score}/100) "${item.title.substring(0, 55)}..."`);
       }
 
@@ -108,9 +105,19 @@ export async function runCurationCycle(): Promise<CurationResult> {
     }
   }
 
-  // 4. Sort and select ONLY TOP 2 ideas per day
-  approvedCandidates.sort((a, b) => b.result.score - a.result.score);
-  const top2 = approvedCandidates.slice(0, 2);
+  // 4. Sort and select ONLY TOP 2 ideas per day (guaranteed)
+  allCandidates.sort((a, b) => b.result.score - a.result.score);
+  const top2 = allCandidates.slice(0, 2);
+  
+  // Mark the others as rejected
+  const selectedUrls = top2.map(c => c.item.url);
+  for (const candidate of allCandidates) {
+    if (!selectedUrls.includes(candidate.item.url)) {
+       markSourceSeen(candidate.item.url, "rejected");
+       createRejectedTopic(agentId, candidate.item.title, candidate.result.reason, candidate.item.url);
+       rejectedCount++;
+    }
+  }
 
   if (top2.length === 0) {
     console.log("[Curation Engine] No candidates met the >= 75 threshold today.");
