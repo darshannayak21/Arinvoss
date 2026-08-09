@@ -200,9 +200,22 @@ export function markSourceSeen(
   url: string,
   outcome: "published" | "rejected" | "backlog"
 ): void {
-  const seen = readJson<Record<string, SeenEntry>>("seen.json", {});
+  let seen = readJson<Record<string, SeenEntry>>("seen.json", {});
   const key = sourceKey(url);
   seen[key] = { url: canonicalizeUrl(url), outcome, firstSeenAt: new Date().toISOString() };
+  
+  // Truncate seen.json to latest 500 to prevent local storage bloat
+  const keys = Object.keys(seen);
+  if (keys.length > 500) {
+    // Sort keys by firstSeenAt ascending
+    keys.sort((a, b) => new Date(seen[a].firstSeenAt).getTime() - new Date(seen[b].firstSeenAt).getTime());
+    // Delete the oldest keys
+    const toDelete = keys.length - 500;
+    for (let i = 0; i < toDelete; i++) {
+      delete seen[keys[i]];
+    }
+  }
+  
   writeJson("seen.json", seen);
 }
 
@@ -268,7 +281,7 @@ export function createRejectedTopic(
   reason: string,
   sourceUrl: string
 ): void {
-  const rejected = readJson<RejectedTopic[]>("rejected.json", []);
+  let rejected = readJson<RejectedTopic[]>("rejected.json", []);
   rejected.push({
     id: `r-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     agentId,
@@ -277,6 +290,12 @@ export function createRejectedTopic(
     sourceUrl,
     createdAt: new Date().toISOString(),
   });
+  
+  // Truncate to prevent Render local storage from filling up and crashing
+  if (rejected.length > 200) {
+    rejected = rejected.slice(-200);
+  }
+  
   writeJson("rejected.json", rejected);
 }
 

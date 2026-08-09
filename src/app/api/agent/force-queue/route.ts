@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       url: url,
       summary: `User manually forced curation of: ${title}`,
       sourceName: "Manual User Override",
+      publishedAt: new Date().toISOString(),
     };
 
     const recentDigest = getRecentPostDigest(agentId);
