@@ -105,17 +105,50 @@ export async function runCurationCycle(): Promise<CurationResult> {
     }
   }
 
-  // 4. Sort and select ONLY TOP 2 ideas per day (guaranteed)
-  allCandidates.sort((a, b) => b.result.score - a.result.score);
-  const top2 = allCandidates.slice(0, 2);
+  // 4. Combine fresh candidates with Backlog items to find absolute best
+  const currentBacklog = getBacklog(agentId);
+  const candidatesPool = [
+    ...allCandidates.map(c => ({
+      item: c.item,
+      result: c.result,
+      sourceType: "live" as const
+    })),
+    ...currentBacklog.map(b => ({
+      item: b.item,
+      result: {
+        worth_publishing: b.score >= 75,
+        score: b.score,
+        breakdown: b.scoreBreakdown,
+        reason: b.reason
+      },
+      sourceType: "backlog" as const
+    }))
+  ];
+
+  // Sort and select ONLY TOP 2 ideas per day (guaranteed from best available)
+  candidatesPool.sort((a, b) => b.result.score - a.result.score);
+  const top2 = candidatesPool.slice(0, 2);
   
-  // Mark the others as rejected
+  // Mark the others as rejected or backlog
   const selectedUrls = top2.map(c => c.item.url);
+  
+  // Re-process live candidates: if not selected, add to backlog if >= 75, else reject
   for (const candidate of allCandidates) {
     if (!selectedUrls.includes(candidate.item.url)) {
-       markSourceSeen(candidate.item.url, "rejected");
-       createRejectedTopic(agentId, candidate.item.title, candidate.result.reason, candidate.item.url);
-       rejectedCount++;
+       if (candidate.result.score >= 75) {
+         addToBacklog(agentId, candidate.item, candidate.result.score, candidate.result.breakdown, candidate.result.reason);
+       } else {
+         markSourceSeen(candidate.item.url, "rejected");
+         createRejectedTopic(agentId, candidate.item.title, candidate.result.reason, candidate.item.url);
+         rejectedCount++;
+       }
+    }
+  }
+
+  // Clean up backlog: pop selected ones
+  for (const selected of top2) {
+    if (selected.sourceType === "backlog") {
+      popBestBacklogItem(agentId);
     }
   }
 
