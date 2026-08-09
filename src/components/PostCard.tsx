@@ -335,7 +335,7 @@ export function PostCard({ post, index }: PostCardProps) {
               btn.innerText = "Error";
             }
             setTimeout(() => {
-              btn.innerText = "Publish to LinkedIn 🚀";
+              btn.innerText = "Publish to LinkedIn";
               btn.style.backgroundColor = "#0077B5";
               btn.disabled = false;
             }, 3000);
@@ -343,7 +343,7 @@ export function PostCard({ post, index }: PostCardProps) {
           title="Publish instantly to LinkedIn (you can re-publish if needed)"
           type="button"
         >
-          Publish to LinkedIn 🚀
+          Publish to LinkedIn
         </button>
       </div>
 

@@ -87,13 +87,59 @@ export function PostTable({ posts }: PostTableProps) {
                       ))}
                     </div>
                   )}
-                  <button
-                    className="table-rationale-btn"
-                    onClick={() => setSelectedPost(post)}
-                    type="button"
-                  >
-                    View Full Dispatch & Architecture ↗
-                  </button>
+                  <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                    <button
+                      className="table-rationale-btn"
+                      onClick={() => setSelectedPost(post)}
+                      type="button"
+                    >
+                      View Full Dispatch & Architecture ↗
+                    </button>
+                    <button
+                      style={{
+                        backgroundColor: "#0077B5",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                        cursor: "pointer",
+                      }}
+                      onClick={async (e) => {
+                        const btn = e.currentTarget;
+                        btn.innerText = "Publishing...";
+                        btn.disabled = true;
+                        try {
+                          const res = await fetch("/api/agent/publish-post", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ postId: post.id })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            btn.innerText = "✓ Published";
+                            btn.style.backgroundColor = "#10b981";
+                          } else {
+                            btn.innerText = "Failed";
+                            btn.style.backgroundColor = "#ef4444";
+                            alert(data.error);
+                          }
+                        } catch (err) {
+                          btn.innerText = "Error";
+                        }
+                        setTimeout(() => {
+                          btn.innerText = "Publish to LinkedIn";
+                          btn.style.backgroundColor = "#0077B5";
+                          btn.disabled = false;
+                        }, 3000);
+                      }}
+                      title="Publish instantly to LinkedIn"
+                      type="button"
+                    >
+                      Publish to LinkedIn
+                    </button>
+                  </div>
                 </td>
 
                 <td className="table-cell-score">
@@ -231,7 +277,51 @@ export function PostTable({ posts }: PostTableProps) {
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button
+                style={{
+                  backgroundColor: "#0077B5",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+                onClick={async (e) => {
+                  const btn = e.currentTarget;
+                  btn.innerText = "Publishing...";
+                  btn.disabled = true;
+                  try {
+                    const res = await fetch("/api/agent/publish-post", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ postId: selectedPost.id })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      btn.innerText = "✓ Published";
+                      btn.style.backgroundColor = "#10b981";
+                    } else {
+                      btn.innerText = "Failed";
+                      btn.style.backgroundColor = "#ef4444";
+                      alert(data.error);
+                    }
+                  } catch (err) {
+                    btn.innerText = "Error";
+                  }
+                  setTimeout(() => {
+                    btn.innerText = "Publish to LinkedIn";
+                    btn.style.backgroundColor = "#0077B5";
+                    btn.disabled = false;
+                  }, 3000);
+                }}
+                type="button"
+              >
+                Publish to LinkedIn
+              </button>
+
               <button
                 className="btn-modal-done"
                 onClick={() => setSelectedPost(null)}
