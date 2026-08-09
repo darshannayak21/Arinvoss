@@ -18,7 +18,7 @@ function isRateLimitError(err: unknown): boolean {
 }
 
 /**
- * Call the Scout model (llama-3.1-8b-instant) with automatic rate-limit retry
+ * Call the Scout model (llama-3.3-70b-versatile) with automatic rate-limit retry
  */
 export async function callScout(
   systemPrompt: string,
@@ -30,7 +30,7 @@ export async function callScout(
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const response = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
