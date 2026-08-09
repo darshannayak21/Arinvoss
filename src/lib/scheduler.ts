@@ -5,7 +5,7 @@ let schedulerRunning = true;
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let cycleCount = 0;
 
-const AUTONOMOUS_INTERVAL_MINUTES = 8 * 60;
+const AUTONOMOUS_INTERVAL_MINUTES = 12 * 60;
 
 export function startScheduler(intervalMinutes: number = AUTONOMOUS_INTERVAL_MINUTES): void {
   if (schedulerRunning) {

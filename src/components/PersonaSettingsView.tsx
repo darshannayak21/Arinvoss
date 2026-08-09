@@ -290,7 +290,7 @@ export function PersonaSettingsView({
               <div className="override-info">
                 <span className="override-name">Autonomous 24/7 Background Scheduler</span>
                 <span className="override-sub">
-                  When enabled, runs a research cycle every 8 hours: three autonomous passes per day.
+                  When enabled, runs a research cycle every 12 hours: two autonomous passes per day.
                 </span>
               </div>
               <button

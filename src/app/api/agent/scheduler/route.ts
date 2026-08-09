@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const action = body?.action; // "start" | "stop" | "toggle"
-    const intervalMinutes = 8 * 60;
+    const intervalMinutes = 12 * 60;
 
     if (action === "start") {
       startScheduler(intervalMinutes);
