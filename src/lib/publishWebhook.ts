@@ -25,15 +25,23 @@ export function cleanPlainText(raw: string): string {
 }
 
 /**
- * Encodes a raw Mermaid.js chart into a direct, high-resolution PNG image URL via Kroki.
+ * Encodes a raw Mermaid.js chart into a direct, high-resolution PNG image URL via official Mermaid Ink.
  */
 export function mermaidToPngUrl(mermaidCode: string): string {
   try {
     if (!mermaidCode || !mermaidCode.trim()) return "";
     const cleanChart = mermaidCode.replace(/```(?:mermaid)?/g, "").trim();
-    const compressed = zlib.deflateSync(cleanChart);
-    const encoded = compressed.toString("base64").replace(/\+/g, "-").replace(/\//g, "_");
-    return `https://kroki.io/mermaid/png/${encoded}`;
+    
+    // Mermaid Ink requires base64 of a JSON string with the code and theme
+    const state = { 
+      code: cleanChart, 
+      mermaid: { theme: 'default' } 
+    };
+    
+    const jsonStr = JSON.stringify(state);
+    const b64 = Buffer.from(jsonStr).toString('base64');
+    
+    return `https://mermaid.ink/img/${b64}`;
   } catch (err) {
     console.error("[Mermaid to PNG] Encoding error:", err);
     return "";
