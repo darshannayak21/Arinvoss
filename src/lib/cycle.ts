@@ -316,19 +316,9 @@ export async function runCycle(): Promise<CycleResult> {
       metricsCited: writerResult.metricsCited,
     }).catch((e) => console.error("[Cycle] Supabase save error:", e));
 
-    // 2. Automatically trigger Make.com webhook for LinkedIn publication
-    void dispatchToMakeWebhook({
-      text: writerResult.text,
-      mermaidDiagram: writerResult.mermaidDiagram,
-    })
-      .then(async (res) => {
-        if (res.success) {
-          await updatePostLinkedInStatus(postId, true, res.responseText);
-        }
-      })
-      .catch((e) => console.error("[Cycle] Webhook trigger error:", e));
-
-    console.log(`[Cycle] ✓ Successfully published post ${postId}`);
+    // 2. Posts are now ONLY queued by the cycle.
+    // They will be picked up by the dispatcher cron job or published manually via the UI.
+    console.log(`[Cycle] ✓ Successfully queued post ${postId}`);
     console.log(`        Hook: "${writerResult.text.split("\n")[0]}"\n`);
 
     return {
