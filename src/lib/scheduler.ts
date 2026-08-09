@@ -1,7 +1,7 @@
 import { runCycle } from "./cycle";
 
 // Global scheduler state — persists across requests in the dev server
-let schedulerRunning = true;
+let schedulerRunning = false;
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let cycleCount = 0;
 
